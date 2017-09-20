@@ -23,3 +23,5 @@ Sanic aspires to be simple
 
     if __name__ == "__main__":
         app.run(host="0.0.0.0", port=8000)
+
+[Getting Start](./getting_started.md)
