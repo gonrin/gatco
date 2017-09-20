@@ -10,18 +10,54 @@ Sanic is developed `on GitHub <https://github.com/channelcat/sanic/>`_. Contribu
 Sanic aspires to be simple
 ---------------------------
 
-.. code:: python
+```python
+from sanic import Sanic
+from sanic.response import json
 
-    from sanic import Sanic
-    from sanic.response import json
+app = Sanic()
 
-    app = Sanic()
+@app.route("/")
+async def test(request):
+    return json({"hello": "world"})
 
-    @app.route("/")
-    async def test(request):
-        return json({"hello": "world"})
-
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=8000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
+```
 
 [Getting Start](./getting_started.md)
+
+[Routing](./routing.md)
+
+[Request Data](./request_data.md)
+
+[Response](./response.md)
+
+[Static Files](./static_files.md)
+
+[Exceptions](./exceptions.md)
+
+[Middleware And Listeners](./middleware.md)
+
+[Blueprints](./blueprints.md)
+
+[Configuration](./config.md)
+
+[Cookies](./cookies.rst)
+
+[Handler Decorators](./decorators.md)
+
+[Streaming](./streaming.md)
+
+[Class-Based Views](./class_based_views.md)
+
+[Custom Protocols](./custom_protocol.md)
+
+[SSL Example](./ssl.rst)
+
+[Logging](./logging.md)
+
+[Testing](./testing.md)
+
+[Deploying](./deploying.md)
+
+[Extensions](./extensions.md)
