@@ -1,0 +1,1 @@
+from sanic.views import *
