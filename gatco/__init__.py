@@ -7,8 +7,12 @@ __all__ = ['Sanic', 'Blueprint']
 
 class Gatco(Sanic):
     session_interface = CookieSessionInterface()
-    #def __init__(self, *args, **kw):
-    #    super(Gatco, self).__init__(*args, **kw)
+
+    def __init__(self, *args, **kw):
+        super(Gatco, self).__init__(*args, **kw)
+        if (not hasattr(self, 'extensions')) or (self.extensions is None):
+            self.extensions = {}
+            
     def run(self, *args, **kw):
         if self.session_interface is not None:
             self.session_interface.init_app(self)
