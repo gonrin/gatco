@@ -63,6 +63,34 @@ of the memory leak.
 
 See the [Gunicorn Docs](http://docs.gunicorn.org/en/latest/settings.html#max-requests) for more information.
 
+## Systemd
+
+/etc/systemd/system/sample_service.service:
+```
+[Unit]
+Description=Sample daemon
+After=network.target
+
+[Service]
+PIDFile=/var/run/sample_service.pid
+User=some_user
+Group=some_group
+RuntimeDirectory=sample
+WorkingDirectory=/project/path
+ExecStart=/project/path/bin/python manage.py run
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+sudo service sample_service start
+sudo sudo systemctl enable sample_service
+```
+
 ## Asynchronous support
 This is suitable if you *need* to share the sanic process with other applications, in particular the `loop`.
 However be advised that this method does not support using multiple processes, and is not the preferred way
