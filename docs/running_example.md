@@ -9,7 +9,14 @@ $ git clone https://giturl/repo.git repo
 $ source bin/activate
 $ cd repo
 $ pip install -r requirements.txt
+```
 
+Edit database configuration in application/config.py
+```
+SQLALCHEMY_DATABASE_URI = 'postgresql://someuser:pass@dbhost:dbport/somedb'
+```
+
+```bash
 # run alembic to migrate database
 $ alembic revision --autogenerate -m "initdb"
 $ alembic upgrade head
