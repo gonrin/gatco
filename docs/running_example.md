@@ -11,11 +11,17 @@ $ cd repo
 $ pip install -r requirements.txt
 ```
 
-Edit database configuration in application/config.py
+# Edit database configuration
+in application/config.py:
 ```
 SQLALCHEMY_DATABASE_URI = 'postgresql://someuser:pass@dbhost:dbport/somedb'
 ```
+in alembic.ini:
+```
+sqlalchemy.url = postgresql://someuser:pass@dbhost:dbport/somedb
+```
 
+then excute:
 ```bash
 # run alembic to migrate database
 $ alembic revision --autogenerate -m "initdb"
