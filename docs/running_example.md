@@ -29,6 +29,14 @@ $ alembic upgrade head
 $ python manage run
 ```
 
+# Add client script:
+```bash
+$ cd static/js
+$ git clone https://github.com/gonrin/GonrinJS.git lib
+$ cd ../vendor/
+$ git clone https://github.com/gonrin/GonrinUI.git
+```
+
 # Now, service is running:
 ```
 2017-09-22 15:37:13 - (sanic)[DEBUG]:
