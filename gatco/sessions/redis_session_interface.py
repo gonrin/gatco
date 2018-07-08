@@ -2,20 +2,13 @@ import ujson
 from .base import BaseSessionInterface, SessionDict
 import uuid
 
-from typing import Callable
-
-
 class RedisSessionInterface(BaseSessionInterface):
     def __init__(
-            self, redis_getter: Callable,
-            domain: str=None, expiry: int = 2592000,
+            self, domain: str=None, expiry: int = 2592000,
             httponly: bool=True, cookie_name: str='session',
             prefix: str='session:'):
         """Initializes a session interface backed by Redis.
         Args:
-            redis_getter (Callable):
-                Coroutine which should return an asyncio_redis connection pool
-                (suggested) or an asyncio_redis Redis connection.
             domain (str, optional):
                 Optional domain which will be attached to the cookie.
             expiry (int, optional):
@@ -28,39 +21,53 @@ class RedisSessionInterface(BaseSessionInterface):
                 Memcache keys will take the format of `prefix+session_id`;
                 specify the prefix here.
         """
-        self.redis_getter = redis_getter
+        
         self.expiry = expiry
         self.prefix = prefix
         self.cookie_name = cookie_name
         self.domain = domain
         self.httponly = httponly
+    
+    def init_app(self, app):
+        super(RedisSessionInterface, self).init_app(app)
+        redis_uri = app.config.get('SESSION_REDIS_URI')
+        if not redis_uri:
+            raise RuntimeError('SESSION_REDIS_URI must be set')
+        
+        try:
+            import redis
+            self.redis_db = redis.StrictRedis.from_url(redis_uri)
+        except:
+            raise RuntimeError('redis must be installed')
 
     async def open(self, request):
         """Opens a session onto the request. Restores the client's session
         from Redis if one exists.The session data will be available on
         `request.session`.
         Args:
-            request (sanic.request.Request):
+            request (gatco.request.Request):
                 The request, which a sessionwill be opened onto.
         Returns:
             dict:
                 the client's session data,
                 attached as well to `request.session`.
         """
-        sid = request.cookies.get(self.cookie_name)
+        if self.session_name in request:
+            return
 
+        sid = request.cookies.get(self.cookie_name)
+        
         if not sid:
-            sid = uuid.uuid4().hex
+            sid = uuid.uuid4().hex + uuid.uuid4().hex
             session_dict = SessionDict(sid=sid)
         else:
-            redis_connection = await self.redis_getter()
-            val = await redis_connection.get(self.prefix + sid)
-
+            key = sid if sid.startswith(self.prefix) else self.prefix + sid
+            val = self.redis_db.get(key)
             if val is not None:
                 data = ujson.loads(val)
                 session_dict = SessionDict(data, sid=sid)
             else:
-                session_dict = SessionDict(sid=sid)
+                session_dict = SessionDict(sid=None)
 
         request['session'] = session_dict
         return session_dict
@@ -78,18 +85,31 @@ class RedisSessionInterface(BaseSessionInterface):
         """
         if 'session' not in request:
             return
-
-        redis_connection = await self.redis_getter()
-        key = self.prefix + request['session'].sid
-        if not request['session']:
-            await redis_connection.delete([key])
-
-            if request['session'].modified:
-                self.delete_cookie(request, response)
-            return
-
-        val = ujson.dumps(dict(request['session']))
-
-        await redis_connection.setex(key, self.expiry, val)
-
-        self.set_cookie(request, response)
+        
+        sid =  request['session'].sid
+        if sid is None:
+            self.delete_cookie(request, response)
+        else:
+            key = sid if sid.startswith(self.prefix) else self.prefix + sid 
+                
+            if (not request['session']) or (len(request['session']) == 0):
+                self.redis_db.delete([key])
+                if request['session'].modified:
+                    self.delete_cookie(request, response)
+            else:
+                val = ujson.dumps(dict(request['session']))
+                
+                p = self.redis_db.pipeline()
+                p.set(key, val)
+                p.expire(key, self.expiry)
+                p.execute()
+                
+                response.cookies[self.cookie_name] = key
+                response.cookies[self.cookie_name]['expires'] = self.get_cookie_expires()
+                response.cookies[self.cookie_name]['max-age'] = self.expiry
+                response.cookies[self.cookie_name]['httponly'] = self.httponly
+        
+        if self.secure:
+            response.cookies[self.cookie_name]['secure'] = self.secure
+        if self.domain:
+            response.cookies[self.cookie_name]['domain'] = self.domain

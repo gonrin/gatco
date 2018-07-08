@@ -38,6 +38,14 @@ class BaseSessionInterface:
         This method be called automatically if the application is provided
         upon initialization
         """
+        setdefault = app.config.setdefault
+        self.cookie_name = setdefault('SESSION_COOKIE_NAME', 'session')
+        self.domain = self.get_cookie_domain(app)
+        self.httponly = setdefault('SESSION_COOKIE_HTTPONLY', True)
+        self.expiry = setdefault('SESSION_COOKIE_MAX_AGE', 86400)
+        self.secure = setdefault('SESSION_COOKIE_SECURE', False)
+        self.session_name = setdefault('SESSION_NAME', 'session')
+        
         @app.middleware('request')
         async def add_session_to_request(request):
             # before each request initialize a session
@@ -51,9 +59,9 @@ class BaseSessionInterface:
             # pass the response to set client cookies
             await self.save(request, response)
             
-            
     def delete_cookie(self, request, response):
-        response.cookies[self.cookie_name] = request['session'].sid
+        #response.cookies[self.cookie_name] = request['session'].sid
+        response.cookies[self.cookie_name] = None
         response.cookies[self.cookie_name]['expires'] = 0
         response.cookies[self.cookie_name]['max-age'] = 0
 
