@@ -92,8 +92,7 @@ class RedisSessionInterface(BaseSessionInterface):
         
         if (not request[self.session_name]) or (len(request[self.session_name]) == 0):
             self.redis_db.delete(key)
-            if request[self.session_name].modified:
-                self.delete_cookie(request, response)
+            self.delete_cookie(request, response)
         else:
             val = ujson.dumps(dict(request[self.session_name]))
             
