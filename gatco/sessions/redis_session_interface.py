@@ -67,9 +67,9 @@ class RedisSessionInterface(BaseSessionInterface):
                 data = ujson.loads(val)
                 session_dict = SessionDict(data, sid=sid)
             else:
-                session_dict = SessionDict(sid=None)
+                session_dict = SessionDict(sid=sid)
 
-        request['session'] = session_dict
+        request[self.session_name] = session_dict
         return session_dict
 
     async def save(self, request, response) -> None:
@@ -83,33 +83,32 @@ class RedisSessionInterface(BaseSessionInterface):
         Returns:
             None
         """
-        if 'session' not in request:
+        if self.session_name not in request:
             return
         
-        sid =  request['session'].sid
-        if sid is None:
-            self.delete_cookie(request, response)
-        else:
-            key = sid if sid.startswith(self.prefix) else self.prefix + sid 
-                
-            if (not request['session']) or (len(request['session']) == 0):
-                self.redis_db.delete([key])
-                if request['session'].modified:
-                    self.delete_cookie(request, response)
-            else:
-                val = ujson.dumps(dict(request['session']))
-                
-                p = self.redis_db.pipeline()
-                p.set(key, val)
-                p.expire(key, self.expiry)
-                p.execute()
-                
-                response.cookies[self.cookie_name] = key
-                response.cookies[self.cookie_name]['expires'] = self.get_cookie_expires()
-                response.cookies[self.cookie_name]['max-age'] = self.expiry
-                response.cookies[self.cookie_name]['httponly'] = self.httponly
+        sid =  request[self.session_name].sid
         
-        if self.secure:
+        key = sid if sid.startswith(self.prefix) else self.prefix + sid 
+        
+        if (not request[self.session_name]) or (len(request[self.session_name]) == 0):
+            self.redis_db.delete(key)
+            if request[self.session_name].modified:
+                self.delete_cookie(request, response)
+        else:
+            val = ujson.dumps(dict(request[self.session_name]))
+            
+            p = self.redis_db.pipeline()
+            p.set(key, val)
+            p.expire(key, self.expiry)
+            p.execute()
+            
+            response.cookies[self.cookie_name] = key
+            response.cookies[self.cookie_name]['expires'] = self.get_cookie_expires()
+            response.cookies[self.cookie_name]['max-age'] = self.expiry
+            response.cookies[self.cookie_name]['httponly'] = self.httponly
+        
+        
+        if self.secure and (self.cookie_name in response.cookies):
             response.cookies[self.cookie_name]['secure'] = self.secure
-        if self.domain:
+        if self.domain and (self.cookie_name in response.cookies):
             response.cookies[self.cookie_name]['domain'] = self.domain
