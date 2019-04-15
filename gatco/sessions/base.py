@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import warnings
 import socket
 from .utils import CallbackDict
@@ -45,6 +46,7 @@ class BaseSessionInterface:
         self.expiry = setdefault('SESSION_COOKIE_MAX_AGE', 86400)
         self.secure = setdefault('SESSION_COOKIE_SECURE', False)
         self.session_name = setdefault('SESSION_NAME', 'session')
+        self.__sanic_version__ = app.__sanic_version__
         
         @app.middleware('request')
         async def add_session_to_request(request):
@@ -76,7 +78,19 @@ class BaseSessionInterface:
     
     def get_cookie_expires(self):
         expires = time.time() + self.expiry
-        return time.strftime("%a, %d-%b-%Y %T GMT", time.gmtime(expires)) 
+
+        major_version = None
+        try:
+            major_version = self.__sanic_version__.split(".")
+            if len(major_version) > 0:
+                major_version = int(major_version[0])
+        except:
+            pass
+
+        if (major_version is not None) and (major_version > 18):
+            return  datetime.fromtimestamp(expires)
+        else:
+            return time.strftime("%a, %d-%b-%Y %T GMT", time.gmtime(expires)) 
     
     def get_cookie_domain(self, app):
         rv = app.config.get('SESSION_COOKIE_DOMAIN')
