@@ -64,7 +64,7 @@ class BaseSessionInterface:
     def delete_cookie(self, request, response):
         #response.cookies[self.cookie_name] = request['session'].sid
         response.cookies[self.cookie_name] = None
-        response.cookies[self.cookie_name]['expires'] = None
+        response.cookies[self.cookie_name]['expires'] = datetime.now()
         response.cookies[self.cookie_name]['max-age'] = 0
 
     def set_cookie(self, request, response):
