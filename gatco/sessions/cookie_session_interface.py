@@ -32,7 +32,7 @@ class CookieSessionInterface(BaseSessionInterface):
     
     async def open(self, request) -> dict:
         req = get_request_container(request)
-        if self.session_name in request:
+        if self.session_name in req:
             return
         session_cookie = request.cookies.get(self.cookie_name)
         
@@ -49,7 +49,7 @@ class CookieSessionInterface(BaseSessionInterface):
     
     async def save(self, request, response) -> None:
         req = get_request_container(request)
-        session = request.get(self.session_name)
+        session = req.get(self.session_name)
         if session is None:
             session = req[self.session_name] = self.session_type()
         response.cookies[self.cookie_name] = self.serializer.dumps(session)
