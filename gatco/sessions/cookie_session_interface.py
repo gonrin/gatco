@@ -1,5 +1,5 @@
 import logging
-from .base import BaseSessionInterface
+from .base import BaseSessionInterface, get_request_container
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 log = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ class CookieSessionInterface(BaseSessionInterface):
         
     
     async def open(self, request) -> dict:
+        req = get_request_container(request)
         if self.session_name in request:
             return
         session_cookie = request.cookies.get(self.cookie_name)
@@ -43,13 +44,14 @@ class CookieSessionInterface(BaseSessionInterface):
                 session = self.session_type()
         else:
             session = self.session_type()
-        request[self.session_name] = session
+        req[self.session_name] = session
         return session
     
     async def save(self, request, response) -> None:
+        req = get_request_container(request)
         session = request.get(self.session_name)
         if session is None:
-            session = request[self.session_name] = self.session_type()
+            session = req[self.session_name] = self.session_type()
         response.cookies[self.cookie_name] = self.serializer.dumps(session)
         response.cookies[self.cookie_name]['expires'] = self.get_cookie_expires()
         response.cookies[self.cookie_name]['max-age'] = self.expiry

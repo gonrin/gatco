@@ -1,6 +1,7 @@
 import ujson
-from .base import BaseSessionInterface, SessionDict
+from .base import BaseSessionInterface, SessionDict, get_request_container
 import uuid
+
 
 class RedisSessionInterface(BaseSessionInterface):
     def __init__(
@@ -52,7 +53,8 @@ class RedisSessionInterface(BaseSessionInterface):
                 the client's session data,
                 attached as well to `request.session`.
         """
-        if self.session_name in request:
+        req = get_request_container(request)
+        if self.session_name in req:
             return
 
         sid = request.cookies.get(self.cookie_name)
@@ -69,7 +71,7 @@ class RedisSessionInterface(BaseSessionInterface):
             else:
                 session_dict = SessionDict(sid=sid)
 
-        request[self.session_name] = session_dict
+        req[self.session_name] = session_dict
         return session_dict
 
     async def save(self, request, response) -> None:
@@ -83,18 +85,19 @@ class RedisSessionInterface(BaseSessionInterface):
         Returns:
             None
         """
-        if self.session_name not in request:
+        req = get_request_container(request)
+        if self.session_name not in req:
             return
         
-        sid =  request[self.session_name].sid
+        sid =  req[self.session_name].sid
         
         key = sid if sid.startswith(self.prefix) else self.prefix + sid 
         
-        if (not request[self.session_name]) or (len(request[self.session_name]) == 0):
+        if (not req[self.session_name]) or (len(req[self.session_name]) == 0):
             self.redis_db.delete(key)
             self.delete_cookie(request, response)
         else:
-            val = ujson.dumps(dict(request[self.session_name]))
+            val = ujson.dumps(dict(req[self.session_name]))
             
             p = self.redis_db.pipeline()
             p.set(key, val)

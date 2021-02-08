@@ -4,6 +4,9 @@ import warnings
 import socket
 from .utils import CallbackDict
 
+def get_request_container(request):
+    return request.ctx.__dict__ if hasattr(request, "ctx") else request
+
 def is_ip(value):
     """Determine if the given string is an IP address.
     :param value: value to check
@@ -68,7 +71,8 @@ class BaseSessionInterface:
         response.cookies[self.cookie_name]['max-age'] = 0
 
     def set_cookie(self, request, response):
-        response.cookies[self.cookie_name] = request['session'].sid
+        req = get_request_container(request)
+        response.cookies[self.cookie_name] = req['session'].sid
         response.cookies[self.cookie_name]['expires'] = self.get_cookie_expires()
         response.cookies[self.cookie_name]['max-age'] = self.expiry
         response.cookies[self.cookie_name]['httponly'] = self.httponly

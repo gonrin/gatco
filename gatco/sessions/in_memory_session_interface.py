@@ -1,5 +1,5 @@
 import ujson
-from .base import BaseSessionInterface, SessionDict
+from .base import BaseSessionInterface, SessionDict, get_request_container
 from .utils import ExpiringDict
 import uuid
 
@@ -29,6 +29,7 @@ class InMemorySessionInterface(BaseSessionInterface):
                 the client's session data,
                 attached as well to `request.session`.
         """
+        req = get_request_container(request)
         sid = request.cookies.get(self.cookie_name)
 
         if not sid:
@@ -43,7 +44,7 @@ class InMemorySessionInterface(BaseSessionInterface):
             else:
                 session_dict = SessionDict(sid=sid)
 
-        request['session'] = session_dict
+        req['session'] = session_dict
         return session_dict
 
     async def save(self, request, response) -> None:
@@ -57,20 +58,21 @@ class InMemorySessionInterface(BaseSessionInterface):
         Returns:
             None
         """
+        req = get_request_container(request)
         if 'session' not in request:
             return
 
-        key = self.prefix + request['session'].sid
-        if not request['session']:
+        key = self.prefix + req['session'].sid
+        if not req['session']:
             if key in self.session_store:
                 self.session_store.delete(key)
 
-            if request['session'].modified:
+            if req['session'].modified:
                 self.delete_cookie(request, response)
 
             return
 
-        val = ujson.dumps(dict(request['session']))
+        val = ujson.dumps(dict(req['session']))
 
         self.session_store.set(
             key, val,
