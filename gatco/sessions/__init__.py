@@ -1,4 +1,4 @@
-from .base import BaseSessionInterface
+from .base import BaseSessionInterface, get_request_container
 from .cookie_session_interface import CookieSessionInterface
 from .in_memory_session_interface import InMemorySessionInterface
 from .redis_session_interface import RedisSessionInterface
