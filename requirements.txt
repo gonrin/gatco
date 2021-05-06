@@ -1,2 +1,2 @@
-sanic
+sanic<=19.9.0
 itsdangerous
