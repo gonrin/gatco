@@ -36,7 +36,7 @@ setup(
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     install_requires=[
-        'sanic<=19.9.0','websockets<=6.0','itsdangerous'
+        'sanic<=19.9.0','websockets<9.0','itsdangerous'
     ],
     extras_require={
         'dev': [
