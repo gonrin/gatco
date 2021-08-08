@@ -421,7 +421,7 @@ class SanicPlugin(object):
                     "Failed attempting a legacy plugin instantiation. "
                     "Cannot find the module this plugin belongs to.")
             # Get the spf singleton from this app
-            from spf.framework import SanicPluginsFramework
+            from .framework import SanicPluginsFramework
             spf = SanicPluginsFramework(app)
             # catch cases like when the module is "__main__" or
             # "__call__" or "__init__"
