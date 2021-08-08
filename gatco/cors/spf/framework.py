@@ -12,9 +12,9 @@ from sanic.exceptions import ServerError
 from sanic.log import logger
 from uuid import uuid1
 
-from spf.config import load_config_file
-from spf.context import SanicContext
-from spf.plugin import SanicPlugin, PluginRegistration
+from .config import load_config_file
+from .context import SanicContext
+from .plugin import SanicPlugin, PluginRegistration
 
 module = sys.modules[__name__]
 module.consts = CONSTS = dict()
