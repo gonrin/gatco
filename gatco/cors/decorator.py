@@ -9,7 +9,7 @@
     :license: MIT, see LICENSE for more details.
 """
 
-from spf import SanicPluginsFramework
+from .spf import SanicPluginsFramework
 from .core import *
 from .extension import cors
 
