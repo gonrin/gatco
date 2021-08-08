@@ -12,7 +12,7 @@ from inspect import isawaitable
 
 from sanic import exceptions, response, __version__ as sanic_version
 from sanic.handlers import ErrorHandler
-from spf import SanicPlugin
+from .spf import SanicPlugin
 from .core import *
 from distutils.version import LooseVersion
 import logging
